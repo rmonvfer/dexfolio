@@ -1,0 +1,96 @@
+<div class="container">
+  <div class="mb-3 row">
+    <div class="col-sm">
+      <a [routerLink]="['/']"><gf-logo /></a>
+    </div>
+    <div class="col-sm">
+      <div class="h6 mt-2" i18n>Personal Finance</div>
+      <ul class="list-unstyled">
+        @if (hasPermissionToAccessFearAndGreedIndex) {
+          <li>
+            <a i18n [routerLink]="routerLinkMarkets">Markets</a>
+          </li>
+        }
+        <li><a i18n [routerLink]="routerLinkResources">Resources</a></li>
+      </ul>
+    </div>
+    <div class="col-sm">
+      <div class="h6 mt-2">dexfolio</div>
+      <ul class="list-unstyled">
+        @if (hasPermissionForSubscription) {
+          <li>
+            <a i18n [routerLink]="routerLinkBlog">Blog</a>
+          </li>
+        }
+        @if (hasPermissionForSubscription) {
+          <li>
+            <a i18n [routerLink]="routerLinkFaq"
+              >Frequently Asked Questions (FAQ)</a
+            >
+          </li>
+        }
+        @if (hasPermissionForSubscription) {
+          <li>
+            <a i18n [routerLink]="routerLinkPricing">Pricing</a>
+          </li>
+        }
+      </ul>
+    </div>
+    <div class="col-sm">
+      <div class="h6 mt-2" i18n>Languages</div>
+      <ul class="list-unstyled">
+        <li>
+          <a href="../zh" title="dexfolio in Chinese (简体中文)"
+            >Chinese (简体中文)</a
+          >
+        </li>
+        <li>
+          <a href="../de" title="dexfolio in Deutsch">Deutsch</a>
+        </li>
+        <li>
+          <a href="../en" title="dexfolio in English">English</a>
+        </li>
+        <li>
+          <a href="../es" title="dexfolio in Español">Español</a>
+        </li>
+        <li>
+          <a href="../fr" title="dexfolio en Français">Français</a>
+        </li>
+        <li>
+          <a href="../it" title="dexfolio in Italiano">Italiano</a>
+        </li>
+        <li>
+          <a href="../nl" title="dexfolio in Nederlands">Nederlands</a>
+        </li>
+        <li>
+          <a href="../pl" title="dexfolio in Polski">Polski</a>
+        </li>
+        <li>
+          <a href="../pt" title="dexfolio in Português">Português</a>
+        </li>
+        <li>
+          <a href="../tr" title="dexfolio in Türkçe">Türkçe</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="mb-2 row text-center">
+    <div class="col">
+      © 2021 - {{ currentYear }}
+      <a href="https://dexfol.io">dexfolio</a>
+    </div>
+  </div>
+  <div class="row text-center text-muted">
+    <div class="col">
+      <small class="d-block" i18n
+        >The risk of loss in trading can be substantial. It is not advisable to
+        invest money you may need in the short term.</small
+      >
+    </div>
+  </div>
+</div>
+<div class="container d-none d-md-block mt-5">
+  <div class="row justify-content-center">
+    <div class="font-weight-bold line-height-1 logotype">dexfolio</div>
+  </div>
+</div>

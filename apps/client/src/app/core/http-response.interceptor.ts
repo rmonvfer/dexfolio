@@ -1,0 +1,131 @@
+import { UserService } from '@dexfolio/client/services/user/user.service';
+import { WebAuthnService } from '@dexfolio/client/services/web-authn.service';
+import { InfoItem } from '@dexfolio/common/interfaces';
+import { internalRoutes, publicRoutes } from '@dexfolio/common/routes/routes';
+import { DataService } from '@dexfolio/ui/services';
+
+import {
+  HTTP_INTERCEPTORS,
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest
+} from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import {
+  MatSnackBar,
+  MatSnackBarRef,
+  TextOnlySnackBar
+} from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { StatusCodes } from 'http-status-codes';
+import ms from 'ms';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+
+@Injectable()
+export class HttpResponseInterceptor implements HttpInterceptor {
+  public info: InfoItem;
+  public snackBarRef: MatSnackBarRef<TextOnlySnackBar>;
+
+  public constructor(
+    private dataService: DataService,
+    private router: Router,
+    private snackBar: MatSnackBar,
+    private userService: UserService,
+    private webAuthnService: WebAuthnService
+  ) {
+    this.info = this.dataService.fetchInfo();
+  }
+
+  public intercept(
+    request: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
+    return next.handle(request).pipe(
+      tap((event: HttpEvent<any>) => {
+        return event;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === StatusCodes.FORBIDDEN) {
+          if (!this.snackBarRef) {
+            if (this.info.isReadOnlyMode) {
+              this.snackBarRef = this.snackBar.open(
+                $localize`This feature is currently unavailable.` +
+                ' ' +
+                $localize`Please try again later.`,
+                undefined,
+                {
+                  duration: ms('6 seconds')
+                }
+              );
+            } else if (
+              !error.url.includes(internalRoutes.auth.routerLink.join(''))
+            ) {
+              this.snackBarRef = this.snackBar.open(
+                $localize`This action is not allowed.`,
+                undefined,
+                {
+                  duration: ms('6 seconds')
+                }
+              );
+            }
+
+            this.snackBarRef.afterDismissed().subscribe(() => {
+              this.snackBarRef = undefined;
+            });
+
+            this.snackBarRef.onAction().subscribe(() => {
+              this.router.navigate(publicRoutes.pricing.routerLink);
+            });
+          }
+        } else if (error.status === StatusCodes.INTERNAL_SERVER_ERROR) {
+          if (!this.snackBarRef) {
+            this.snackBarRef = this.snackBar.open(
+              $localize`Oops! Something went wrong.` +
+              ' ' +
+              $localize`Please try again later.`,
+              $localize`Okay`,
+              {
+                duration: ms('6 seconds')
+              }
+            );
+
+            this.snackBarRef.afterDismissed().subscribe(() => {
+              this.snackBarRef = undefined;
+            });
+
+            this.snackBarRef.onAction().subscribe(() => {
+              window.location.reload();
+            });
+          }
+        } else if (error.status === StatusCodes.TOO_MANY_REQUESTS) {
+          if (!this.snackBarRef) {
+            this.snackBarRef = this.snackBar.open(
+              $localize`Oops! It looks like you’re making too many requests. Please slow down a bit.`
+            );
+
+            this.snackBarRef.afterDismissed().subscribe(() => {
+              this.snackBarRef = undefined;
+            });
+          }
+        } else if (error.status === StatusCodes.UNAUTHORIZED) {
+          if (!error.url.includes('/data-providers/dexfolio/status')) {
+            if (this.webAuthnService.isEnabled()) {
+              this.router.navigate(internalRoutes.webauthn.routerLink);
+            } else {
+              this.userService.signOut();
+            }
+          }
+        }
+
+        return throwError(error);
+      })
+    );
+  }
+}
+
+export const httpResponseInterceptorProviders = [
+  { provide: HTTP_INTERCEPTORS, useClass: HttpResponseInterceptor, multi: true }
+];

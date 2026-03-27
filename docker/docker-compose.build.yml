@@ -1,0 +1,23 @@
+name: dexfolio_build
+services:
+  dexfolio:
+    build: ../
+    image: dexfolio/dexfolio:local
+    extends:
+      file: docker-compose.yml
+      service: dexfolio
+
+  postgres:
+    container_name: dx-postgres-build
+    extends:
+      file: docker-compose.yml
+      service: postgres
+
+  redis:
+    container_name: dx-redis-build
+    extends:
+      file: docker-compose.yml
+      service: redis
+
+volumes:
+  postgres:

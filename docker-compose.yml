@@ -1,0 +1,106 @@
+name: dexfolio-dev
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: dx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dexfolio-db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d dexfolio-db -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: dx-redis
+    restart: unless-stopped
+    command: redis-server --requirepass redis
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --pass redis ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  setup:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dx-setup
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      DATABASE_URL: postgresql://user:postgres@postgres:5432/dexfolio-db?connect_timeout=300&sslmode=prefer
+      NX_ADD_PLUGINS: "false"
+      NX_DAEMON: "false"
+    command: sh -c "bun install && bunx prisma db push --accept-data-loss && bunx prisma db seed"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dx-api
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - 3333:3333
+    environment:
+      HOST: 0.0.0.0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis
+      POSTGRES_DB: dexfolio-db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: postgres
+      DATABASE_URL: postgresql://user:postgres@postgres:5432/dexfolio-db?connect_timeout=300&sslmode=prefer
+      ACCESS_TOKEN_SALT: CHANGE_ME_DEV_SALT
+      JWT_SECRET_KEY: CHANGE_ME_DEV_JWT_SECRET
+      NX_ADD_PLUGINS: "false"
+      NX_DAEMON: "false"
+      WATCHPACK_POLLING: "true"
+    command: sh -c "bunx nx run api:copy-assets && bunx nx run api:serve --watch"
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dx-client
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - 4200:4200
+    environment:
+      NX_ADD_PLUGINS: "false"
+      NX_DAEMON: "false"
+      CHOKIDAR_USEPOLLING: "true"
+    command: sh -c "bunx nx run client:copy-assets && bunx nx run client:serve --configuration=docker-en --hmr --host=0.0.0.0"
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  node_modules:

@@ -1,0 +1,26 @@
+:host {
+  display: block;
+
+  .hero {
+    padding: 4rem 0 2rem;
+  }
+
+  .intro {
+    font-size: 4vw;
+    line-height: 1;
+
+    @media (max-width: 575.98px) {
+      font-size: 10vw;
+    }
+  }
+
+  .mat-mdc-outlined-button {
+    background-color: var(--light-background);
+  }
+}
+
+:host-context(.theme-dark) {
+  .mat-mdc-outlined-button {
+    background-color: var(--dark-background);
+  }
+}
