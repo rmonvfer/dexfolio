@@ -200,6 +200,22 @@ export const publicRoutes: Record<string, PublicRoute> = {
         ],
         title: 'OSS Friends'
       },
+      privacyPolicy: {
+        path: $localize`:kebab-case@@routes.about.privacyPolicy:privacy-policy`,
+        routerLink: [
+          '/' + $localize`:kebab-case@@routes.about:about`,
+          $localize`:kebab-case@@routes.about.privacyPolicy:privacy-policy`
+        ],
+        title: $localize`Privacy Policy`
+      },
+      termsOfService: {
+        path: $localize`:kebab-case@@routes.about.termsOfService:terms-of-service`,
+        routerLink: [
+          '/' + $localize`:kebab-case@@routes.about:about`,
+          $localize`:kebab-case@@routes.about.termsOfService:terms-of-service`
+        ],
+        title: $localize`Terms of Service`
+      }
     },
     title: $localize`About`
   },

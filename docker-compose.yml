@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d dexfolio-db -U user"]
+      test: ['CMD-SHELL', 'pg_isready -d dexfolio-db -U user']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,7 +27,7 @@ services:
     ports:
       - ${REDIS_PORT:-6379}:6379
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli --pass redis ping | grep PONG"]
+      test: ['CMD-SHELL', 'redis-cli --pass redis ping | grep PONG']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,8 +42,8 @@ services:
       - node_modules:/app/node_modules
     environment:
       DATABASE_URL: postgresql://user:postgres@postgres:5432/dexfolio-db?connect_timeout=300&sslmode=prefer
-      NX_ADD_PLUGINS: "false"
-      NX_DAEMON: "false"
+      NX_ADD_PLUGINS: 'false'
+      NX_DAEMON: 'false'
     command: sh -c "bun install && bunx prisma db push --accept-data-loss && bunx prisma db seed"
     depends_on:
       postgres:
@@ -71,9 +71,12 @@ services:
       DATABASE_URL: postgresql://user:postgres@postgres:5432/dexfolio-db?connect_timeout=300&sslmode=prefer
       ACCESS_TOKEN_SALT: CHANGE_ME_DEV_SALT
       JWT_SECRET_KEY: CHANGE_ME_DEV_JWT_SECRET
-      NX_ADD_PLUGINS: "false"
-      NX_DAEMON: "false"
-      WATCHPACK_POLLING: "true"
+      NX_ADD_PLUGINS: 'false'
+      NX_DAEMON: 'false'
+      NX_PROJECT_GRAPH_CACHE_DIRECTORY: /tmp/nx-api
+      NX_CACHE_DIRECTORY: /tmp/nx-api-cache
+      NX_WORKSPACE_DATA_DIRECTORY: /tmp/nx-api-workspace
+      WATCHPACK_POLLING: 'true'
     command: sh -c "bunx nx run api:copy-assets && bunx nx run api:serve --watch"
     depends_on:
       setup:
@@ -93,9 +96,12 @@ services:
     ports:
       - 4200:4200
     environment:
-      NX_ADD_PLUGINS: "false"
-      NX_DAEMON: "false"
-      CHOKIDAR_USEPOLLING: "true"
+      NX_ADD_PLUGINS: 'false'
+      NX_DAEMON: 'false'
+      NX_PROJECT_GRAPH_CACHE_DIRECTORY: /tmp/nx-client
+      NX_CACHE_DIRECTORY: /tmp/nx-client-cache
+      NX_WORKSPACE_DATA_DIRECTORY: /tmp/nx-client-workspace
+      CHOKIDAR_USEPOLLING: 'true'
     command: sh -c "bunx nx run client:copy-assets && bunx nx run client:serve --configuration=docker-en --hmr --host=0.0.0.0"
     depends_on:
       setup:

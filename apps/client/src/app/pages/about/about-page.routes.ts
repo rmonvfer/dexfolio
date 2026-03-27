@@ -29,6 +29,20 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./oss-friends/oss-friends-page.routes').then((m) => m.routes)
       },
+      {
+        path: publicRoutes.about.subRoutes?.privacyPolicy.path,
+        loadChildren: () =>
+          import('./privacy-policy/privacy-policy-page.routes').then(
+            (m) => m.routes
+          )
+      },
+      {
+        path: publicRoutes.about.subRoutes?.termsOfService.path,
+        loadChildren: () =>
+          import('./terms-of-service/terms-of-service-page.routes').then(
+            (m) => m.routes
+          )
+      }
     ],
     component: AboutPageComponent,
     path: '',
