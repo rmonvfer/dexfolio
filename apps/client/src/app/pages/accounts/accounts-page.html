@@ -27,6 +27,19 @@
     !user.settings.isRestrictedView
   ) {
     <div class="fab-container">
+      @if (hasPermissionToConnectWallet) {
+        <a
+          class="align-items-center d-flex justify-content-center me-2"
+          color="accent"
+          i18n-title
+          mat-fab
+          title="Connect Wallet"
+          [queryParams]="{ connectWalletDialog: true }"
+          [routerLink]="[]"
+        >
+          <ion-icon name="wallet-outline" size="large" />
+        </a>
+      }
       <a
         class="align-items-center d-flex justify-content-center"
         color="primary"

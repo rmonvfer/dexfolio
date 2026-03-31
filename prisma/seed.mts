@@ -16,6 +16,16 @@ async function main() {
     ],
     skipDuplicates: true
   });
+
+  await prisma.platform.upsert({
+    where: { url: 'https://ethereum.org' },
+    update: {},
+    create: {
+      id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      name: 'Ethereum Wallet',
+      url: 'https://ethereum.org'
+    }
+  });
 }
 
 main()
