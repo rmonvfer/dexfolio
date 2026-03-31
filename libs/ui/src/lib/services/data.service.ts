@@ -1,4 +1,5 @@
 import {
+  ConnectWalletDto,
   CreateAccessDto,
   CreateAccountBalanceDto,
   CreateAccountDto,
@@ -54,14 +55,11 @@ import {
   SymbolItem,
   User,
   UserItem,
+  WalletConnection,
   WatchlistResponse
 } from '@dexfolio/common/interfaces';
 import { filterGlobalPermissions } from '@dexfolio/common/permissions';
-import type {
-  AiPromptMode,
-  DateRange,
-  GroupBy
-} from '@dexfolio/common/types';
+import type { AiPromptMode, DateRange, GroupBy } from '@dexfolio/common/types';
 import { translate } from '@dexfolio/ui/i18n';
 
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -889,5 +887,31 @@ export class DataService {
 
       (window as any).info = info;
     });
+  }
+
+  public generateWalletNonce(aAddress: string) {
+    return this.http.post<{ nonce: string; message: string }>(
+      '/api/v1/wallet/nonce',
+      { address: aAddress }
+    );
+  }
+
+  public connectWallet(aBody: ConnectWalletDto) {
+    return this.http.post<WalletConnection>('/api/v1/wallet/connect', aBody);
+  }
+
+  public disconnectWallet(aWalletConnectionId: string) {
+    return this.http.delete<void>(`/api/v1/wallet/${aWalletConnectionId}`);
+  }
+
+  public syncWallet(aWalletConnectionId: string) {
+    return this.http.post<void>(
+      `/api/v1/wallet/${aWalletConnectionId}/sync`,
+      {}
+    );
+  }
+
+  public fetchWalletConnections() {
+    return this.http.get<WalletConnection[]>('/api/v1/wallet');
   }
 }

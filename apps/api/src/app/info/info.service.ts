@@ -41,7 +41,7 @@ export class InfoService {
     private readonly redisCacheService: RedisCacheService,
     private readonly subscriptionService: SubscriptionService,
     private readonly userService: UserService
-  ) { }
+  ) {}
 
   public async get(): Promise<InfoItem> {
     const info: Partial<InfoItem> = {};
@@ -67,8 +67,7 @@ export class InfoService {
           dexfolioFearAndGreedIndexDataSourceStocks
         );
       } else {
-        info.fearAndGreedDataSource =
-          dexfolioFearAndGreedIndexDataSourceStocks;
+        info.fearAndGreedDataSource = dexfolioFearAndGreedIndexDataSourceStocks;
       }
 
       globalPermissions.push(permissions.enableFearAndGreedIndex);
@@ -96,6 +95,8 @@ export class InfoService {
     if (this.configurationService.get('ENABLE_FEATURE_SYSTEM_MESSAGE')) {
       globalPermissions.push(permissions.enableSystemMessage);
     }
+
+    globalPermissions.push(permissions.enableWalletConnect);
 
     const [
       benchmarks,
@@ -265,7 +266,7 @@ export class InfoService {
       if (statistics) {
         return statistics;
       }
-    } catch { }
+    } catch {}
 
     const activeUsers1d = await this.countActiveUsers(1);
     const activeUsers30d = await this.countActiveUsers(30);

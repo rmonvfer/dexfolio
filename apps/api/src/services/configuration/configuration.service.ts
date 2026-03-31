@@ -27,6 +27,7 @@ export class ConfigurationService {
       API_KEY_COINGECKO_DEMO: str({ default: '' }),
       API_KEY_COINGECKO_PRO: str({ default: '' }),
       API_KEY_EOD_HISTORICAL_DATA: str({ default: '' }),
+      API_KEY_ETHERSCAN: str({ default: '' }),
       API_KEY_FINANCIAL_MODELING_PREP: str({ default: '' }),
       API_KEY_OPEN_FIGI: str({ default: '' }),
       API_KEY_RAPID_API: str({ default: '' }),

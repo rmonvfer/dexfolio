@@ -40,6 +40,7 @@ export const permissions = {
   enableSubscription: 'enableSubscription',
   enableSubscriptionInterstitial: 'enableSubscriptionInterstitial',
   enableSystemMessage: 'enableSystemMessage',
+  enableWalletConnect: 'enableWalletConnect',
   impersonateAllUsers: 'impersonateAllUsers',
   readAiPrompt: 'readAiPrompt',
   readMarketData: 'readMarketData',

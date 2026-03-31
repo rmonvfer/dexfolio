@@ -1,8 +1,10 @@
 import { UserService } from '@dexfolio/api/app/user/user.service';
 import { ConfigurationService } from '@dexfolio/api/services/configuration/configuration.service';
 import { ExchangeRateDataService } from '@dexfolio/api/services/exchange-rate-data/exchange-rate-data.service';
+import { PrismaService } from '@dexfolio/api/services/prisma/prisma.service';
 import { PropertyService } from '@dexfolio/api/services/property/property.service';
 import { DataGatheringService } from '@dexfolio/api/services/queues/data-gathering/data-gathering.service';
+import { WalletSyncQueueService } from '@dexfolio/api/services/queues/wallet-sync/wallet-sync.service';
 import { TwitterBotService } from '@dexfolio/api/services/twitter-bot/twitter-bot.service';
 import {
   DATA_GATHERING_QUEUE_PRIORITY_LOW,
@@ -17,6 +19,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class CronService {
+  private static readonly EVERY_4_HOURS = '17 */4 * * *';
   private static readonly EVERY_HOUR_AT_RANDOM_MINUTE = `${new Date().getMinutes()} * * * *`;
   private static readonly EVERY_SUNDAY_AT_LUNCH_TIME = '0 12 * * 0';
 
@@ -24,10 +27,12 @@ export class CronService {
     private readonly configurationService: ConfigurationService,
     private readonly dataGatheringService: DataGatheringService,
     private readonly exchangeRateDataService: ExchangeRateDataService,
+    private readonly prismaService: PrismaService,
     private readonly propertyService: PropertyService,
     private readonly twitterBotService: TwitterBotService,
-    private readonly userService: UserService
-  ) { }
+    private readonly userService: UserService,
+    private readonly walletSyncQueueService: WalletSyncQueueService
+  ) {}
 
   @Cron(CronService.EVERY_HOUR_AT_RANDOM_MINUTE)
   public async runEveryHourAtRandomMinute() {
@@ -79,6 +84,22 @@ export class CronService {
           };
         })
       );
+    }
+  }
+
+  @Cron(CronService.EVERY_4_HOURS)
+  public async syncWallets() {
+    const walletConnections =
+      await this.prismaService.walletConnection.findMany({
+        select: { id: true },
+        where: {
+          accountId: { not: null },
+          syncEnabled: true
+        }
+      });
+
+    for (const { id } of walletConnections) {
+      await this.walletSyncQueueService.addSyncJob(id);
     }
   }
 

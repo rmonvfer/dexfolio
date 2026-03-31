@@ -25,11 +25,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Account as AccountModel } from '@prisma/client';
 import { addIcons } from 'ionicons';
-import { addOutline } from 'ionicons/icons';
+import { addOutline, walletOutline } from 'ionicons/icons';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { EMPTY, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
+import { GfConnectWalletDialogComponent } from './connect-wallet-dialog/connect-wallet-dialog.component';
+import { ConnectWalletDialogParams } from './connect-wallet-dialog/interfaces/interfaces';
 import { GfCreateOrUpdateAccountDialogComponent } from './create-or-update-account-dialog/create-or-update-account-dialog.component';
 import { CreateOrUpdateAccountDialogParams } from './create-or-update-account-dialog/interfaces/interfaces';
 import { TransferBalanceDialogParams } from './transfer-balance/interfaces/interfaces';
@@ -47,6 +49,7 @@ export class GfAccountsPageComponent implements OnInit {
   public activitiesCount = 0;
   public deviceType: string;
   public hasImpersonationId: boolean;
+  public hasPermissionToConnectWallet: boolean;
   public hasPermissionToCreateAccount: boolean;
   public hasPermissionToUpdateAccount: boolean;
   public routeQueryParams: Subscription;
@@ -88,10 +91,15 @@ export class GfAccountsPageComponent implements OnInit {
           }
         } else if (params['transferBalanceDialog']) {
           this.openTransferBalanceDialog();
+        } else if (
+          params['connectWalletDialog'] &&
+          this.hasPermissionToConnectWallet
+        ) {
+          this.openConnectWalletDialog();
         }
       });
 
-    addIcons({ addOutline });
+    addIcons({ addOutline, walletOutline });
   }
 
   public ngOnInit() {
@@ -110,6 +118,10 @@ export class GfAccountsPageComponent implements OnInit {
         if (state?.user) {
           this.user = state.user;
 
+          this.hasPermissionToConnectWallet = hasPermission(
+            this.user.permissions,
+            permissions.enableWalletConnect
+          );
           this.hasPermissionToCreateAccount = hasPermission(
             this.user.permissions,
             permissions.createAccount
@@ -170,6 +182,12 @@ export class GfAccountsPageComponent implements OnInit {
   public onTransferBalance() {
     this.router.navigate([], {
       queryParams: { transferBalanceDialog: true }
+    });
+  }
+
+  public onConnectWallet() {
+    this.router.navigate([], {
+      queryParams: { connectWalletDialog: true }
     });
   }
 
@@ -350,6 +368,48 @@ export class GfAccountsPageComponent implements OnInit {
             });
 
           this.changeDetectorRef.markForCheck();
+        }
+
+        this.router.navigate(['.'], { relativeTo: this.route });
+      });
+  }
+
+  private openConnectWalletDialog() {
+    const dialogRef = this.dialog.open<
+      GfConnectWalletDialogComponent,
+      ConnectWalletDialogParams
+    >(GfConnectWalletDialogComponent, {
+      data: {},
+      height: this.deviceType === 'mobile' ? '98vh' : '80vh',
+      width: this.deviceType === 'mobile' ? '100vw' : '50rem'
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result?.connected) {
+          this.reset();
+
+          this.userService
+            .get(true)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe();
+
+          this.fetchAccounts();
+
+          this.changeDetectorRef.markForCheck();
+
+          if (result.viewAccount && result.accountId) {
+            this.router.navigate([], {
+              queryParams: {
+                accountDetailDialog: true,
+                accountId: result.accountId
+              }
+            });
+
+            return;
+          }
         }
 
         this.router.navigate(['.'], { relativeTo: this.route });

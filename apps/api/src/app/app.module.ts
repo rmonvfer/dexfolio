@@ -24,6 +24,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { StatusCodes } from 'http-status-codes';
 import { join } from 'node:path';
 
@@ -59,6 +60,7 @@ import { RedisCacheModule } from './redis-cache/redis-cache.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { SymbolModule } from './symbol/symbol.module';
 import { UserModule } from './user/user.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   controllers: [AppController],
@@ -76,26 +78,26 @@ import { UserModule } from './user/user.module';
     BenchmarksModule,
     ...(process.env.ENABLE_FEATURE_BULL_BOARD === 'true'
       ? [
-        BullBoardModule.forRoot({
-          adapter: ExpressAdapter,
-          boardOptions: {
-            uiConfig: {
-              boardLogo: {
-                height: 0,
-                path: '',
-                width: 0
-              },
-              boardTitle: 'Job Queues',
-              favIcon: {
-                alternative: '/assets/favicon-32x32.png',
-                default: '/assets/favicon-32x32.png'
+          BullBoardModule.forRoot({
+            adapter: ExpressAdapter,
+            boardOptions: {
+              uiConfig: {
+                boardLogo: {
+                  height: 0,
+                  path: '',
+                  width: 0
+                },
+                boardTitle: 'Job Queues',
+                favIcon: {
+                  alternative: '/assets/favicon-32x32.png',
+                  default: '/assets/favicon-32x32.png'
+                }
               }
-            }
-          },
-          middleware: BullBoardAuthMiddleware,
-          route: BULL_BOARD_ROUTE
-        })
-      ]
+            },
+            middleware: BullBoardAuthMiddleware,
+            route: BULL_BOARD_ROUTE
+          })
+        ]
       : []),
     BullModule.forRoot({
       redis: {
@@ -152,7 +154,7 @@ import { UserModule } from './user/user.module';
               if (SUPPORTED_LANGUAGE_CODES.includes(code)) {
                 languageCode = code;
               }
-            } catch { }
+            } catch {}
 
             res.set('Location', `/${languageCode}`);
             res.statusCode = StatusCodes.MOVED_PERMANENTLY;
@@ -168,7 +170,9 @@ import { UserModule } from './user/user.module';
     SubscriptionModule,
     SymbolModule,
     TagsModule,
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     UserModule,
+    WalletModule,
     WatchlistModule
   ],
   providers: [I18nService]

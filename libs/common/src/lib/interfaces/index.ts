@@ -95,6 +95,7 @@ import type { ToggleOption } from './toggle-option.interface';
 import type { UserItem } from './user-item.interface';
 import type { UserSettings } from './user-settings.interface';
 import type { User } from './user.interface';
+import type { WalletConnection } from './wallet-connection.interface';
 import type { XRayRulesSettings } from './x-ray-rules-settings.interface';
 
 export {
@@ -189,6 +190,7 @@ export {
   User,
   UserItem,
   UserSettings,
+  WalletConnection,
   WatchlistResponse,
   XRayRulesSettings
 };
